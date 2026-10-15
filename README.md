@@ -1,48 +1,109 @@
-3D Boss Arena – OpenGL (CSE423 Project)
-Course: CSE423 — Computer Graphics
-Project Type: 3D Lab Project (Based on Assignment-3 Template)
+# Circle of Fury: 3D Boss Arena
 
-Project Summary
+A real-time, squad-based 3D combat simulation developed using Python and PyOpenGL (GLUT/GLU). 
 
-This project implements a 3D circular boss-battle environment using only the OpenGL functions permitted in Assignment-3 template.
-The scene is fully 3D and includes:
-A circular arena floor
-A large central boss model (built with sphere, cube, cylinder)
-Multiple fighter units approaching the boss
-Simple boss attack animation using rotation
-Damage / HP reduction logic
-End condition when boss health reaches zero
-Camera control with gluLookAt and keyboard rotation
+The application implements a complete graphics and game pipeline from the ground up without third-party game engines or external 3D asset loaders. All geometry, character hierarchies, animation cycles, lighting, and collision mathematics are computed and rendered procedurally.
 
-Key Functionalities
+---
 
-Meets the requirement of providing 3× more features than Assignment-3.
-Circular 3D Arena Rendering
-Hierarchical Monster Model + Rotation Animation
-Multiple NPC Fighters + Movement Toward Boss
-Boss Punch Collision + Fighter Removal
-Boss Health Calculation & On-Screen Display
-Restart Option After Boss Defeat
-Camera Orbit and Height Control (Arrow Keys)
-Allowed Functions Used
+## Overview
 
-All rendering follows Assignment-3 constraints:
-glTranslatef, glRotatef, glScalef
-gluPerspective, gluLookAt
-glBegin(GL_QUADS/GL_LINES/GL_TRIANGLES)
-glutSolidSphere, glutSolidCube, gluCylinder
-glRasterPos2f text output
-glPushMatrix, glPopMatrix
-glutIdleFunc, glutDisplayFunc, glutKeyboardFunc
-(No external models, shaders, or textures used.)
+Players command an infantry squad in a circular arena against a towering, multi-jointed boss entity. The objective is to navigate the arena, recruit neutral units to scale attack damage, acquire dynamic equipment drops, and defeat the central boss while managing positioning to avoid lethal area-of-effect cleaver strikes.
 
-Controls
+---
 
-Arrow Keys → Camera Rotate / Height Adjust
-Automatic NPC Movement Toward Boss
-Restart Trigger (Key defined in code)
-Idle updates handle animation and HP logic
+## Technical Highlights
 
-End Condition
+### 1. Procedural 3D Graphics Pipeline
+* **Native OpenGL Rendering:** All models (boss entity, humanoid fighters, weapons, and arena colosseum) are generated procedurally using OpenGL primitives (`GL_TRIANGLES`, `GL_QUADS`), matrix stacks (`glPushMatrix`, `glPopMatrix`), and hierarchical transformations (`glTranslatef`, `glRotatef`, `glScalef`).
+* **Dual-Mode Camera System:** Features a configurable spherical coordinate orbit camera (360-degree rotation and elevation control via `gluLookAt`) and an interactive first-person perspective locked directly to the squad commander.
+* **Hybrid 2D/3D Projection:** Implements an orthographic overlay (`gluOrtho2D`) decoupled from the 3D perspective pipeline to render real-time health bars, floating damage numbers, and interactive user prompts.
 
-Boss HP = 0 → Display result and allow restart.
+### 2. Entity State Machine and Boss AI
+* **Finite State Machine (FSM):** The boss operates on a deterministic attack cycle (`IDLE` -> `WINDUP` -> `SMASH` -> `COOLDOWN`) with variable animation interpolation.
+* **Dynamic Target Tracking:** In non-attack phases, the boss calculates angular displacement toward the nearest ally and continuously aligns its forward vector via smooth interpolation.
+* **Rotational Hitbox Mathematics:** Cleaver impacts compute transformed world-space coordinates from local joint matrices to evaluate radial area-of-effect damage against the player squad.
+
+### 3. Squad and Combat Mechanics
+* **Dynamic Unit Recruitment:** Proximity-based collision detection converts neutral perimeter units into active allies, dynamically scaling squad damage output.
+* **Tiered Weaponry and Inventory:**
+  * **Spear:** Baseline weapon with synchronized thrust and projectile animations.
+  * **Firearm:** High-velocity projectile class with ammo constraints and rapid cooldowns.
+  * **Shield:** Finite-durability defensive gear that completely negates boss smash damage.
+* **Autonomous Navigation (Cheat Mode):** Includes an autonomous vector pathfinding mode that guides the squad toward the nearest neutral recruit.
+
+---
+
+## Controls
+
+| Input | Function |
+| :--- | :--- |
+| **W, A, S, D** | Move active squad across the arena floor |
+| **Left Mouse Click** *(on Boss)* | Command squad attack (Spear or Firearm) |
+| **Right Mouse Click** | Toggle between Orbit and First-Person camera |
+| **Arrow Left / Right** | Orbit camera horizontally around the arena |
+| **Arrow Up / Down** | Adjust camera height and vertical angle |
+| **C** | Toggle autonomous pathfinding mode |
+| **R** | Reset simulation state |
+| **ESC** | Open pause and exit confirmation modal |
+
+---
+
+## Architecture
+
+The project adheres to a modular architecture separating state management, graphics rendering, and gameplay logic:
+
+```text
+circle-of-fury-game/
+|
+|-- main.py              # Application entry point and GLUT lifecycle hooks
+|-- config.py            # Global constants, physics parameters, and dimensions
+|-- input_handler.py     # Keyboard, mouse, and special key event dispatchers
+|
+|-- core/
+|   |-- game_state.py    # Encapsulated state singleton
+|   `-- camera.py        # Projection setup, orbit math, and first-person view
+|
+|-- graphics/
+|   |-- models.py        # Procedural 3D OpenGL primitives and character assemblies
+|   `-- ui.py            # 2D Orthographic HUD, damage indicators, and dialogs
+|
+`-- logic/
+    |-- boss.py          # Boss state machine, orientation, and damage calculations
+    |-- fighters.py      # Squad movement, boundary checking, and recruitment
+    `-- weapons.py       # Weapon cooldowns, projectile trajectories, and drop spawns
+```
+
+---
+
+## Installation and Execution
+
+### Requirements
+* Python 3.9 or higher
+* PyOpenGL and PyOpenGL_accelerate
+
+### Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/azharulhabib/circle-of-fury-game.git
+   cd circle-of-fury-game
+   ```
+
+2. **Initialize a virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the game:**
+   ```bash
+   python main.py
+   ```
+
+---
