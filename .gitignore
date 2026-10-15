@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+core/__pycache__/
+graphics/__pycache__/
+logic/__pycache__/
+*.pyc
+.DS_Store
